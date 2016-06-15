@@ -83,7 +83,7 @@
     (let ([nchars (file-write (writer-fd w) (writer-buff w))])
       (writer-buff-set! w (string-drop (writer-buff w) nchars))))
 
-  (define (sep-atom str len index)
+  (define (atom-sep-index str len index)
     (let loop ([i index])
       (cond
         [(= i len)
@@ -95,7 +95,7 @@
         [else
          (loop (add1 i))])))
 
-  (define (sep-list str len index)
+  (define (list-sep-index str len index)
     (let loop ([i index] [open-par 0] [close-par 0])
       (cond
         [(and (= open-par close-par) (not (zero? open-par)))
@@ -113,10 +113,10 @@
         [else
          (loop (add1 i) open-par close-par)])))
 
-  (define (sep-vector str len index)
+  (define (vector-sep-index str len index)
     (if (= len (sub1 index))
       0
-      (sep-list str len (add1 index))))
+      (list-sep-index str len (add1 index))))
 
   (define (ignore-comment str len index)
     (let loop ([i index])
@@ -128,39 +128,47 @@
         [else
          (loop (add1 i))])))
 
-  (define (sep-scheme-expr str)
+  (define (scheme-expr-sep-index str)
     (let ([len (string-length str)])
       (let loop ([i 0])
-        [(= i len)
-         0]
-        [(whitespace? (string-ref str i))
-         (loop (add1 i))]
-        [(eqv? (string-ref str i) #\')
-         (loop (add1 i))]
-        [(eqv? (string-ref str i) #\`)
-         (loop (add1 i))]
-        [(eqv? (string-ref str i) #\()
-         (sep-list str len i)]
-        [(eqv? (string-ref str i) #\#)
-         (sep-vector str len i)]
-        [(eqv? (string-ref str i) #\;)
-         (let ([after-comment (ignore-comment str len i)])
-           (if after-comment
-             (loop after-comment)
-             0))]
-        [else
-          (sep-atom str len i)]))
+        (cond
+          [(= i len)
+           0]
+          [(whitespace? (string-ref str i))
+           (loop (add1 i))]
+          [(eqv? (string-ref str i) #\')
+           (loop (add1 i))]
+          [(eqv? (string-ref str i) #\`)
+           (loop (add1 i))]
+          [(eqv? (string-ref str i) #\()
+           (list-sep-index str len i)]
+          [(eqv? (string-ref str i) #\#)
+           (vector-sep-index str len i)]
+          [(eqv? (string-ref str i) #\;)
+           (let ([after-comment (ignore-comment str len i)])
+             (if after-comment
+               (loop after-comment)
+               0))]
+          [else
+            (atom-sep-index str len i)])) ))
+
+  (define (sep-scheme-expr str)
+    (let ([sep-index (scheme-expr-sep-index str)])
+      (values (string-take str sep-index) (string-drop str sep-index))))
+
+  (define (line-sep-index str)
+    (let ([len (string-length str)])
+      (let loop ([i 0])
+        (cond
+          [(= i len)
+           0]
+          [(eqv? (string-ref str i) #\newline)
+           i]
+          [else
+           (loop (add1 i))] ))))
 
   (define (sep-line str)
-    (let ([len (string-length str)])
-      (let loop ([i 0])
-        (let ([sep-index (cond
-                          [(= i len)
-                           0]
-                          [(eqv? (string-ref str i) #\newline)
-                           i]
-                          [else
-                           (loop (add1 i))])])
-          (values (string-take str sep-index) (string-drop str sep-index) )))))
-
+    (let ([sep-index (line-sep-index str)])
+      (values (string-take str sep-index) (string-drop str sep-index))))
 )
+
