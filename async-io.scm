@@ -10,7 +10,7 @@
                   writer-fd
                   writer-ready?
                   writer-finished?
-                  writer-queue-output!
+                  writer-enqueue!
                   writer-write!
                   sep-scheme-expr
                   sep-line)
@@ -67,7 +67,7 @@
     (file-control fd fcntl/setfl open/nonblock)
     (new-writer fd ""))
 
-  (define (writer-queue-output! w str)
+  (define (writer-enqueue! w str)
     (writer-buff-set! w (string-append (writer-buff w) str)))
 
   (define (writer-ready? w)
@@ -76,7 +76,7 @@
   (define (writer-finished? w)
     (zero? (string-length (writer-buff w))))
 
-  (define (writer-buffer-add! w str)
+  (define (writer-enqueue! w str)
     (writer-buff-set! w (string-append (writer-buff w) str)))
 
   (define (writer-write! w)
