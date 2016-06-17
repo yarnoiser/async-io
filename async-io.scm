@@ -163,7 +163,7 @@
           [(= i len)
            0]
           [(eqv? (string-ref str i) #\newline)
-           i]
+           (add1 i)]
           [else
            (loop (add1 i))] ))))
 
