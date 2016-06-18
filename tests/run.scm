@@ -30,7 +30,16 @@
   (writer-enqueue! writer "el")
   (sleep 1)
   (writer-enqueue! writer "lo")
-  (writer-write! writer))
+  ; clear write buffer
+  (let loop ()
+    (cond
+      [(writer-finished? writer)
+       (void)]
+      [(writer-ready? writer)
+       (begin (writer-write! writer)
+              (loop))]
+      [else
+        (loop)]))
 
 (define (sep-hello str)
   (if (equal? str "hello")
@@ -55,8 +64,17 @@
   (reader-read! reader)
   ; we should not have a token yet: writer only sends partial string
   (assert (not (reader-has-token? reader)))
-  (reader-wait reader)
-  (reader-read! reader)
+
+  ; read until we get the token
+  (let loop ()
+    (cond
+      [(reader-has-token? reader)
+       (void)]
+      [(reader-ready? reader)
+       (begin (reader-read! reader)
+              (loop))]
+      [else
+       (loop)]))
   ; we should have token now, writer should send the rest of it.
   (assert (reader-has-token? reader))
   (assert (equal? "hello" (reader-get-token! reader)))
@@ -71,7 +89,78 @@
       [else
        (loop)]))
   (assert (equal? "hello" (reader-get-token! reader)))
-       
+  (file-close test-in)
   (receive (pid success status) (process-wait writer-pid)
     (assert (= status 0))))
+; test sep-scheme-expr ======
+
+; incomplete list expression
+(receive (tok rem) (sep-scheme-expr "(+ 1")
+  (assert (and (equal? tok "") (equal? rem "(+ 1"))))
+
+; list expression
+(receive (tok rem) (sep-scheme-expr "(+ 1 1)")
+  (assert (and (equal? tok "(+ 1 1)") (equal? rem ""))))
+
+; incomplete quoted list expression
+(receive (tok rem) (sep-scheme-expr "'(+ 1")
+  (assert (and (equal? tok "") (equal? rem "'(+ 1"))))
+
+; quoted list expression
+(receive (tok rem) (sep-scheme-expr "'(1 2 3)")
+  (assert (and (equal? tok "'(1 2 3)") (equal? rem ""))))
+
+; incomplete vector expression
+(receive (tok rem) (sep-scheme-expr "#(1 2")
+  (assert (and (equal? tok "") (equal? rem "#(1 2"))))
+
+; vector expression
+(receive (tok rem) (sep-scheme-expr "#(1 2 3)")
+  (assert (and (equal? tok "#(1 2 3)") (equal? rem ""))))
+
+; incomplete quoted vector expression
+(receive (tok rem) (sep-scheme-expr "'#(1 2")
+  (assert (and (equal? tok "") (equal? rem "'#(1 2"))))
+
+; quoted vector expression
+(receive (tok rem) (sep-scheme-expr "'#(1 2 3)")
+  (assert (and (equal? tok "'#(1 2 3)") (equal? rem ""))))
+
+; quoted atom
+(receive (tok rem) (sep-scheme-expr "'hello")
+  (assert (and (equal? tok "'hello") (equal? rem ""))))
+
+; atom
+(receive (tok rem) (sep-scheme-expr "hello")
+  (assert (and (equal? tok "hello") (equal? rem ""))))
+
+;two expressions
+(receive (tok rem) (sep-scheme-expr "hello(world)")
+  (assert (and (equal? tok "hello") (equal? rem "(world)"))))
+
+; comment in the middle of partial expression
+(receive (tok rem) (sep-scheme-expr "(hello ;world)")
+  (assert (and (equal? tok "") (equal? rem "(hello ;world)"))))
+
+; comment in the middle of whole expression
+(receive (tok rem) (sep-scheme-expr "(hello ;world)\nworld)")
+  (assert (and (equal? tok "(hello ;world)\nworld)") (equal? rem ""))))
+
+; comment before expression
+(receive (tok rem) (sep-scheme-expr ";hello\nworld")
+  (assert (and (equal? tok ";hello\nworld") (equal? rem ""))))
+
+; test sep-line =====
+; test single line
+(receive (tok rem) (sep-line "hello world\n")
+  (assert (and (equal? tok "hello world\n") (equal? rem ""))))
+
+; no new line
+(receive (tok rem) (sep-line "hello world")
+  (assert (and (equal? tok "") (equal? rem "hello world"))))
+
+; test line plus more
+(receive (tok rem) (sep-line "hello\n world")
+  (assert (and (equal? tok "hello\n") (equal? rem " world"))))
+
 
