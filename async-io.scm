@@ -110,6 +110,11 @@
          (loop (add1 i) (add1 open-par) close-par)]
         [(eqv? (string-ref str i) #\))
          (loop (add1 i) open-par (add1 close-par))]
+        [(eqv? (string-ref str i) #\;)
+         (let ([after-comment (ignore-comment str len i)])
+           (if after-comment
+             (loop after-comment open-par close-par)
+             0))]
         [else
          (loop (add1 i) open-par close-par)])))
 
