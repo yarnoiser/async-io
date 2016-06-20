@@ -40,7 +40,7 @@
     (new-reader fd sep-proc "" "" 0))
 
   (define (reader-has-token? r)
-    (not (zero? (string-length (reader-token r)))))
+    (not (equal? "" (reader-token r))))
 
   (define (reader-get-token! r)
     (let ([token (reader-token r)])
@@ -74,7 +74,7 @@
     (fd-write-ready? (writer-fd w)))
 
   (define (writer-finished? w)
-    (zero? (string-length (writer-buff w))))
+    (equal? "" (writer-buff w)))
 
   (define (writer-enqueue! w str)
     (writer-buff-set! w (string-append (writer-buff w) str)))
