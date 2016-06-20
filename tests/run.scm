@@ -1,6 +1,4 @@
-(load "async-io.scm")
-(import async-io)
-(use posix)
+(use async-io posix)
 
 (define-values (test-in test-out) (create-pipe))
 
@@ -39,7 +37,7 @@
        (begin (writer-write! writer)
               (loop))]
       [else
-        (loop)]))
+        (loop)])))
 
 (define (sep-hello str)
   (if (equal? str "hello")
