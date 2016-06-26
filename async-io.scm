@@ -39,25 +39,25 @@
     (file-control fd fcntl/setfl open/nonblock)
     (new-reader fd sep-proc "" "" 0))
 
-  (define (reader-has-token? r)
-    (not (equal? "" (reader-token r))))
+  (define (reader-has-token? x)
+    (not (equal? "" (reader-token x))))
 
-  (define (reader-get-token! r)
-    (let ([token (reader-token r)])
-      (reader-token-set! r "")
+  (define (reader-get-token! x)
+    (let ([token (reader-token x)])
+      (reader-token-set! x "")
       token))
 
-  (define (reader-ready? r)
-    (fd-read-ready? (reader-fd r)))
+  (define (reader-ready? x)
+    (fd-read-ready? (reader-fd x)))
 
-  (define (reader-read! r)
-    (receive (chars nchars) (apply values (file-read (reader-fd r) read-size))
+  (define (reader-read! x)
+    (receive (chars nchars) (apply values (file-read (reader-fd x) read-size))
       (if (zero? nchars)
         #!eof
-        (let ([str (string-append (reader-buff r) (string-take chars nchars))])
-          (receive (token rem) ((reader-sep-proc r) str)
-            (reader-token-set! r token)
-            (reader-buff-set! r rem))))))
+        (let ([str (string-append (reader-buff x) (string-take chars nchars))])
+          (receive (token rem) ((reader-sep-proc x) str)
+            (reader-token-set! x token)
+            (reader-buff-set! x rem))))))
 
   (define-record writer fd buff)
 
@@ -67,21 +67,21 @@
     (file-control fd fcntl/setfl open/nonblock)
     (new-writer fd ""))
 
-  (define (writer-enqueue! w str)
-    (writer-buff-set! w (string-append (writer-buff w) str)))
+  (define (writer-enqueue! x str)
+    (writer-buff-set! x (string-append (writer-buff x) str)))
 
-  (define (writer-ready? w)
-    (fd-write-ready? (writer-fd w)))
+  (define (writer-ready? x)
+    (fd-write-ready? (writer-fd x)))
 
-  (define (writer-finished? w)
-    (equal? "" (writer-buff w)))
+  (define (writer-finished? x)
+    (equal? "" (writer-buff x)))
 
-  (define (writer-enqueue! w str)
-    (writer-buff-set! w (string-append (writer-buff w) str)))
+  (define (writer-enqueue! x str)
+    (writer-buff-set! x (string-append (writer-buff x) str)))
 
-  (define (writer-write! w)
-    (let ([nchars (file-write (writer-fd w) (writer-buff w))])
-      (writer-buff-set! w (string-drop (writer-buff w) nchars))))
+  (define (writer-write! x)
+    (let ([nchars (file-write (writer-fd x) (writer-buff x))])
+      (writer-buff-set! x (string-drop (writer-buff x) nchars))))
 
   (define (atom-sep-index str len index)
     (let loop ([i index])
