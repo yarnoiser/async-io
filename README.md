@@ -58,12 +58,47 @@ Otherwise returns false.
 If reader *x* found a token using it's separator procedure during the last call to (reader-read! x),
 then that token will be returned as a string. Otherwise an empty string is returned.
 
+#### Example
+Echo the first scheme expression from stdin.
+
+```scheme
+(define reader (make-reader fileno/stdin sep-scheme-expr))
+
+(let loop ()
+  (cond
+    ((reader-has-token? reader)
+     (print (reader-get-token! reader)))
+    ((reader-ready? reader)
+     (begin (reader-read! reader)
+            (loop)))
+    (else
+     (loop))))
+```
+
 ### Separator Procedures
 Separator procedures are used by readers to identify tokens to be returned with *reader-get-token!*.
 These procedures take a string to separate as an argument and return two values:
 a token separated from the main string, and the remainder of the string after the token.
 Token separation is done with every call to reader-read! before input is placed within a reader's buffer.
 This egg comes with two pre-made separator procedure: sep-scheme-expr and sep-line.
+
+### Example
+The following separator procedure separates tokens delimited by commas.
+```scheme
+(use srfi-13)
+
+(define (sep-comma str)
+  (let ((len (string-length str)))
+    (let loop ((i 0))
+      (cond
+        ((= i len)
+         (values "" str))
+        ((eqv? (string-ref str i) #\,)
+         (values (string-take str (add1 i)) (string-drop str (add1 i))))
+        (else
+         (loop (add1 i)))))))
+
+```
 
 #### sep-scheme-expr
 ```
