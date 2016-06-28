@@ -130,3 +130,23 @@ ready to be written to.
 ```
 Returns true if the writer *x* has nothing queued to be written to it's file descriptor.
 Otherwise returns fales.
+
+#### Example
+Write the string "hello, world!\n" to stdout using an async-io writer.
+
+```scheme
+(use async-io posix)
+
+(define writer (make-writer fileno/stdout))
+
+(writer-enqueue! writer "hello, world!\n")
+(let loop ()
+  (cond
+    ((writer-finished? writer)
+     (void))
+    ((writer-ready? writer)
+     (begin (writer-write! writer)
+            (loop)))
+    (else
+     (loop))))
+```
