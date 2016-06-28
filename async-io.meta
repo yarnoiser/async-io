@@ -1,0 +1,9 @@
+(
+(license "3 Clause BSD")
+
+(category io)
+
+(author "Robert Smiley")
+
+(synopsis "Asynchronous I/O")
+)

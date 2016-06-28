@@ -1,0 +1,7 @@
+(compile -s -O3 -d1 async-io.scm -j async-io)
+(compile -s -O3 -d0 async-io.import.scm)
+
+(install-extension 'async-io
+                   '("async-io.import.so" "async-io.so")
+                   '((version "0.1.0")))
+
