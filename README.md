@@ -14,7 +14,7 @@ Readers are used to read strings from a file descriptor asynchronously and retur
 ```
 [procedure] (make-reader fd sep-proc)
 ```
-Sets the file descriptor *fd* to nonblocking mode.
+Sets the file descriptor *fd* to non-blocking mode.
 Returns a reader which is used to read input from the file descriptor *fd*.
 This reader separates tokens using *sep-proc*.
 
@@ -124,7 +124,7 @@ Writers are used to asynchronously write strings to a file descriptor.
 ```
 [procedure] (make-writer fd)
 ```
-Sets the file descriptor *fd* into nonblocking mode and returns a writer which is used to read input from *fd*.
+Sets the file descriptor *fd* into non-blocking mode and returns a writer which is used to read input from *fd*.
 
 #### writer?
 ```
@@ -156,7 +156,7 @@ to *writer-write!*.
 ```
 [procedure] (writer-write! x)
 ```
-Write's characters from writer *x*'s buffer to *x*'s file descriptor. Throws an exception if *x*'s file descriptor is not
+Writes characters from writer *x*'s buffer to *x*'s file descriptor. Throws an exception if *x*'s file descriptor is not
 ready to be written to.
 
 #### writer-finished?
@@ -164,7 +164,7 @@ ready to be written to.
 [procedure] (writer-finished? x)
 ```
 Returns true if the writer *x* has nothing queued to be written to it's file descriptor.
-Otherwise returns fales.
+Otherwise returns false.
 
 #### Example
 Write the string "hello, world!\n" to stdout using an async-io writer.
