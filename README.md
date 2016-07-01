@@ -1,6 +1,5 @@
 # async-io
 Asynchronous I/O Library for Chicken Scheme.
-This README is a work in progress
 
 ## Usage
 ```scheme
