@@ -1,4 +1,4 @@
-(use async-io posix)
+(use async-io posix srfi-18)
 
 (define-values (test-in test-out) (create-pipe))
 
@@ -161,4 +161,42 @@
 (receive (tok rem) (sep-line "hello\n world")
   (assert (and (equal? tok "hello\n") (equal? rem " world"))))
 
+; tests after version 0.1.0
+
+(define-values (test-in test-out) (create-pipe))
+
+(define writer (make-writer test-out))
+(define reader (make-reader test-in sep-scheme-expr))
+
+(define (write-thunk)
+  (writer-enqueue! writer "(+ 1")
+  (let loop ()
+    (cond
+      [(writer-finished? writer)
+        (void)]
+      [else
+        (begin (thread-wait-for-writer! writer)
+               (writer-write! writer)
+               (loop))]))
+  (thread-yield!)
+  (writer-enqueue! writer " 1)")
+  (let loop ()
+    (cond
+      [(writer-finished? writer)
+        (void)]
+      [else
+        (begin (thread-wait-for-writer! writer)
+               (writer-write! writer)
+               (loop))])))
+
+(thread-start! (make-thread write-thunk))
+
+(let loop ()
+  (cond
+    [(reader-has-token? reader)
+     (assert (equal? (reader-get-token! reader) "(+ 1 1)"))]
+    [else
+     (begin (thread-wait-for-reader! reader)
+            (reader-read! reader)
+            (loop))]))
 
