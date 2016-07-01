@@ -36,6 +36,16 @@ Returns the file descriptor belonging to reader *x*.
 ```
 Returns true if there is input waiting to be read by the reader *x*.
 
+#### thread-wait-for-reader!
+```
+[procedure] (thread-wait-for-reader! x)
+```
+Suspends the current thread until the file descriptor belonging to reader *x* is ready to be read.
+Equivalent to:
+```
+(thread-wait-for-i/o! (reader-fd x))
+```
+
 #### reader-read!
 ```
 [procedure] (reader-read! x)
@@ -144,6 +154,16 @@ Returns the file descriptor belonging to the writer *x*.
 ```
 Returns true if the file descriptor belonging to writer *x* is ready to be written to.
 Otherwise returns false.
+
+#### thread-wait-for-writer!
+```
+[procedure] (thread-wait-for-writer! x)
+```
+Suspends the current thread until the file descriptor belonging to writer *x* is ready to be written to.
+Equivalent to:
+```
+(thread-wait-for-i/o! (writer-fd x))
+```
 
 #### writer-enqueue!
 ```
