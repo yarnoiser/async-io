@@ -2,6 +2,7 @@
                   reader?
                   reader-fd
                   reader-ready?
+                  thread-wait-for-reader!
                   reader-has-token?
                   reader-get-token!
                   reader-read!
@@ -9,6 +10,7 @@
                   writer?
                   writer-fd
                   writer-ready?
+                  thread-wait-for-writer!
                   writer-finished?
                   writer-enqueue!
                   writer-write!
@@ -16,7 +18,7 @@
                   sep-line)
 
   (import chicken scheme)
-  (use (srfi 13 14) posix)
+  (use (srfi 13 14 18) posix)
 
   (define read-size 512)
 
@@ -50,6 +52,9 @@
   (define (reader-ready? x)
     (fd-read-ready? (reader-fd x)))
 
+  (define (thread-wait-for-reader! x)
+    (thread-wait-for-i/o! (reader-fd x)))
+
   (define (reader-read! x)
     (receive (chars nchars) (apply values (file-read (reader-fd x) read-size))
       (if (zero? nchars)
@@ -72,6 +77,9 @@
 
   (define (writer-ready? x)
     (fd-write-ready? (writer-fd x)))
+
+  (define (thread-wait-for-writer! x)
+    (thread-wait-for-i/o! (writer-fd x)))
 
   (define (writer-finished? x)
     (equal? "" (writer-buff x)))
